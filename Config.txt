@@ -1,0 +1,2 @@
+Team1 = BasicTeamAG
+Team2 = AIKHomoG
