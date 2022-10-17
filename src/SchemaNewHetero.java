@@ -2,9 +2,9 @@
  * SchemaNewHetero.java
  */
 
-import EDU.gatech.cc.is.util.Vec2;
-import EDU.gatech.cc.is.abstractrobot.*;
+import EDU.gatech.cc.is.abstractrobot.ControlSystemSS;
 import EDU.gatech.cc.is.clay.*;
+import EDU.gatech.cc.is.util.Vec2;
 
 /**
  * This is an example of a simple control system for soccer robots
@@ -31,6 +31,9 @@ public class SchemaNewHetero extends ControlSystemSS {
     private NodeInt state_monitor;
 
     private final static double CLOSE = .05;
+    public double[] disPos = {0.6, 0.5, 0.3, 0.3, 0.3};
+    public double[] disKick = {0.1, 0.4, 0.3, 0.3, 0.3};
+    public double[] disTeam = {0.6, 0.1, 0.5, 0.4, 0.7};
 
     /**
      * Configure the SchemaDemo control system using Clay.
@@ -260,29 +263,69 @@ public class SchemaNewHetero extends ControlSystemSS {
         v_Select_vai
                 STEERING = new v_Select_vai(STATE);
 
+        Vec2 ball = abstract_robot.getBall(abstract_robot.getTime());
+        int mynum = abstract_robot.getPlayerNumber(abstract_robot.getTime());
+        Vec2 closestteammate = new Vec2(99999, 0);
+        Vec2[] teammates = abstract_robot.getTeammates(abstract_robot.getTime());
+        for (Vec2 teammate : teammates) {
+            if (teammate.r < closestteammate.r) {
+                closestteammate = teammate;
+            }
+        }
 
-        if (abstract_robot.getPlayerNumber(-1) == 0) {
+        STEERING.embedded[0] = AS_GET_BEHIND_BALL;
+        STEERING.embedded[4] = AS_GET_BEHIND_BALL;
+        if (mynum == 0) { // Goalie
+            if (ball.r > this.disPos[mynum]) {
+                // Full Defensa
+                STEERING.embedded[1] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[2] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[3] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[5] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[6] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[7] = AS_MOVE_TO_BACKFIELD;
+            } else {
+                // Solo interactua cuando el balon esta cerca
+                STEERING.embedded[1] = AS_MOVE_TO_BACKFIELD;
+                STEERING.embedded[2] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[3] = AS_MOVE_TO_BACKFIELD;
+                // I'm the closest teammate to the ball
+                STEERING.embedded[5] = AS_MOVE_TO_BALL;
+                STEERING.embedded[6] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[7] = AS_MOVE_TO_BALL;
+            }
             // I'm not the closest teammate to the ball
-            STEERING.embedded[0] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[1] = AS_MOVE_TO_BACKFIELD;
-            STEERING.embedded[2] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[3] = AS_MOVE_TO_BACKFIELD;
-            // I'm the closest teammate to the ball
-            STEERING.embedded[4] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[5] = AS_MOVE_TO_BALL;
-            STEERING.embedded[6] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[7] = AS_MOVE_TO_BALL;
+
         } else {
-            // I'm not the closest teammate to the ball
-            STEERING.embedded[0] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[1] = AS_MOVE_TO_BALL;
-            STEERING.embedded[2] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[3] = AS_MOVE_TO_BALL;
-            // I'm the closest teammate to the ball
-            STEERING.embedded[4] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[5] = AS_MOVE_TO_BALL;
-            STEERING.embedded[6] = AS_GET_BEHIND_BALL;
-            STEERING.embedded[7] = AS_MOVE_DOWNFIELD;
+            if (ball.r > this.disPos[mynum]) {
+                // Full Defensa
+                STEERING.embedded[1] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[2] = AS_BLOCK_CLOSEST_OPP;
+                STEERING.embedded[3] = AS_MOVE_TO_BALL;
+                // si es el mas cercano al balon
+                STEERING.embedded[5] = AS_MOVE_TO_BALL;
+                STEERING.embedded[6] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[7] = AS_MOVE_TO_BACKFIELD;
+            } else if (ball.r > this.disKick[mynum]) {
+                // Ataque
+                STEERING.embedded[1] = AS_MOVE_TO_BALL;
+                STEERING.embedded[2] = AS_MOVE_DOWNFIELD;
+                STEERING.embedded[3] = AS_GET_BEHIND_BALL;
+
+                STEERING.embedded[5] = AS_MOVE_TO_BALL;
+                STEERING.embedded[6] = AS_MOVE_TO_BALL;
+                STEERING.embedded[7] = AS_MOVE_DOWNFIELD;
+
+            } else {
+                // I'm not the closest teammate to the ball
+                STEERING.embedded[1] = AS_MOVE_TO_BALL;
+                STEERING.embedded[2] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[3] = AS_MOVE_TO_BALL;
+                // I'm the closest teammate to the ball
+                STEERING.embedded[5] = AS_MOVE_TO_BALL;
+                STEERING.embedded[6] = AS_GET_BEHIND_BALL;
+                STEERING.embedded[7] = AS_MOVE_DOWNFIELD;
+            }
         }
         steering_configuration = STEERING;
 
@@ -337,11 +380,19 @@ public class SchemaNewHetero extends ControlSystemSS {
 
         // Check for scoring event
         if (abstract_robot.getJustScored(curr_time) != 0) {
-            System.out.println("score: "
-                    + abstract_robot.getJustScored(curr_time));
+//            System.out.println("score: "
+//                    + abstract_robot.getJustScored(curr_time));
         }
 
         // Tell parent we're OK
         return (CSSTAT_OK);
+    }
+
+    public void setParam(Integer[] disPos, Integer[] disKick, Integer[] disTeam) {
+        for (int i = 0; i < 5; i++) {
+            this.disPos[i] = disPos[i] / 10.0;
+            this.disKick[i] = disKick[i] / 10.0;
+            this.disTeam[i] = disTeam[i] / 10.0;
+        }
     }
 }

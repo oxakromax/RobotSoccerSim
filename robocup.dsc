@@ -44,7 +44,7 @@ seed 3
 // lose fidelity.  In fact, for slow computers, values less than 1.0
 // may be necessary.  Here, we run faster than real time:
 
-time 4.0 // go 2x real time
+time 20.0 // go 2x real time
 
 
 //======

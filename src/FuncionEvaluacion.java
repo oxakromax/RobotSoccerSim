@@ -6,7 +6,6 @@
 import org.jgap.FitnessFunction;
 import org.jgap.IChromosome;
 
-import java.lang.reflect.Constructor;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -17,8 +16,8 @@ public class FuncionEvaluacion extends FitnessFunction {
 
 
     private int MAXDIF = 1000;
-    private String team1;
-    private String team2;
+    private final String team1;
+    private final String team2;
 
     //Inicializa cualquier valor necesario para poder evaluar
     FuncionEvaluacion(int ptos, String team1, String team2) {
@@ -27,11 +26,22 @@ public class FuncionEvaluacion extends FitnessFunction {
         this.team2 = team2;
     }
 
+    //Este método solo imprime el contenido de un cromosoma por pantalla
+    public static void println(IChromosome cromosoma) {
+        System.out.print("\tCromosoma: ");
+        for (int ri = 0; ri < 5; ri++)
+            System.out.print("[" + cromosoma.getGene(ri).getAllele() + "," +
+                    cromosoma.getGene(ri + 5).getAllele() + "," +
+                    cromosoma.getGene(ri + 10).getAllele() + "]");
+        System.out.println();
+
+    }
+
     //Este método debe mantener su nombre y parámetros, solo cambiar implementación del cuerpo
     //Este método es usado internamente por "evolve" para evaluar a los individuos de una población
     public double evaluate(IChromosome cromosoma) {
 
-        //Arreglos que se pasaran como parámetros a los 5  agentes.        
+        //Arreglos que se pasaran como parámetros a los 5  agentes.
         //superada esta distancia, busca volver a su posición de juego
         Integer[] disPos = new Integer[5];
 
@@ -48,24 +58,24 @@ public class FuncionEvaluacion extends FitnessFunction {
             disTeam[jj] = (Integer) cromosoma.getGene(jj + 10).getAllele();
         }
 
-        //CANDIDATOS INVALIDOS o MALOS (se debe descartar asignando un MAL puntaje)               
+        //CANDIDATOS INVALIDOS o MALOS (se debe descartar asignando un MAL puntaje)
         //Ejemplo: según la construcción del agente TeamBasic:
         // if (ball.r > this.disPos[mynum]) {
         //    result = backspot;
-        // } 
+        // }
         // else if (ball.r > this.disKick[mynum]) {
         //    result = kickspot;
         // } else {
         //    result = ball;
         // }
-        //        
+        //
         // si no se cumple ball.r > this.disPos[mynum], entonces  this.disKick[mynum]
         // no puede ser mayor a this.disPos[mynum], pues entonces jamas patearía
         // esto quiere decir que si encontramos un cromosoma que parametrice el agente
         // con esta configuración, entonces el cromosoma deberá ser descartado evaluandolo muy mal
         for (int jj = 0; jj < 5; jj++) {
             if (disKick[jj] >= disPos[jj]) {
-                this.println(cromosoma);
+                println(cromosoma);
                 System.out.println("\t>>>>>>>(individuo descartado para simulacion)");
                 return 0; //retorna la peor evalaución posible
             }
@@ -82,10 +92,10 @@ public class FuncionEvaluacion extends FitnessFunction {
         String backcolor1 = "xFFFFFF";  //2do. color equipo1
         String forecolor2 = "xFF0000";  //1er color equipo2
         String backcolor2 = "x0000FF";  //2do. color equipo2
-        double posx[] = {-1.2, -.5, -.15, -.15, -.15, 1.2, .5, .15, .15, .15}; //posición x en cancha para todos
-        double posy[] = {0, 0, 0.5, 0, -0.5, 0, 0, 0.5, 0, -0.5}; //posición y en cancha para todos
-        double theta[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //rotación en cancha para todos
-        int vclas[] = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}; //clase de visión (permite setear el lado)
+        double[] posx = {-1.2, -.5, -.15, -.15, -.15, 1.2, .5, .15, .15, .15}; //posición x en cancha para todos
+        double[] posy = {0, 0, 0.5, 0, -0.5, 0, 0, 0.5, 0, -0.5}; //posición y en cancha para todos
+        double[] theta = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //rotación en cancha para todos
+        int[] vclas = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2}; //clase de visión (permite setear el lado)
 
         //Creamos 10 instancias de NewRobotSpec con la configuración para los 10 agentes.
         //indicamos la clase "BasicTeamAG" para equipo1 y "AIKHomoG" para equipo2
@@ -98,7 +108,7 @@ public class FuncionEvaluacion extends FitnessFunction {
                     posx[i], posy[i], theta[i], forecolor2, backcolor2, vclas[i]);
 
         //instanciamos simulador sin gráficos
-        TBSimNoGraphics tb = new TBSimNoGraphics(null, "robocup.dsc", new_robotos, 3, 2, 50);
+        TBSimNoGraphics tb = new TBSimNoGraphics(null, "robocup.dsc", new_robotos, 3, 20, 50);
         tb.start();
         tb.sem1 = new Semaphore(0);
         try {
@@ -111,7 +121,15 @@ public class FuncionEvaluacion extends FitnessFunction {
         //En este ejemplo a los primeros 5 (BasicTeamAG) se les envian los paramétros
         //propuesto por el algoritmo genético
         for (int ri = 0; ri < 5; ri++) {
-            ((BasicTeamAG) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);
+            switch (team1) {
+                case "BasicTeamAG":
+                    ((BasicTeamAG) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);
+                    break;
+                case "SchemaNewHetero":
+                    ((SchemaNewHetero) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);
+                    break;
+            }
+
         }
 
         //Iniciamos y esperamos a que termine simulación
@@ -129,23 +147,11 @@ public class FuncionEvaluacion extends FitnessFunction {
         diff = Integer.parseInt(lst[0]) - Integer.parseInt(lst[1]);
 
         //Imprimimos resultado por pantalla
-        this.println(cromosoma);
+        println(cromosoma);
         System.out.println("\t(FITNESS:" + (MAXDIF + diff) + "   DIFF. GOLES:" + diff + ")");
 
         //Retornamos la evaluación del resultado, a mayor valor mejor es evaluado.
         return Math.max(0, MAXDIF + diff);
-    }
-
-
-    //Este método solo imprime el contenido de un cromosoma por pantalla
-    public static void println(IChromosome cromosoma) {
-        System.out.print("\tCromosoma: ");
-        for (int ri = 0; ri < 5; ri++)
-            System.out.print("[" + (Integer) cromosoma.getGene(ri).getAllele() + "," +
-                    (Integer) cromosoma.getGene(ri + 5).getAllele() + "," +
-                    (Integer) cromosoma.getGene(ri + 10).getAllele() + "]");
-        System.out.println();
-
     }
 
 }

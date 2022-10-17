@@ -1,10 +1,9 @@
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.jgap.*;
-import org.jgap.impl.*;
+import org.jgap.impl.DefaultConfiguration;
+import org.jgap.impl.IntegerGene;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -53,26 +52,7 @@ public class Main {
         Configuration conf = new DefaultConfiguration();
         conf.setPreservFittestIndividual(true);
         conf.setKeepPopulationSizeConstant(false);
-
-        // read Config.txt File
-        File file = new File("Config.txt");
-        try {
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] parts = line.split("=");
-                if (parts[0].contains("Team1")) {
-                    team1 = parts[1].trim();
-                } else if (parts[0].contains("Team2")) {
-                    team2 = parts[1].trim();
-                }
-            }
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        Writerobocup(team1, team2, true);
-        Writerobocup(team1, team2, false);
+        initSettings();
 
 
         //Ejemplo de individuos:
@@ -127,4 +107,42 @@ public class Main {
 
 
     }
+
+    private static void initSettings() {
+        // read Config.txt File
+        File file = new File("Config.txt");
+        try {
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("=");
+                if (parts[0].contains("Team1")) {
+                    team1 = parts[1].trim();
+                } else if (parts[0].contains("Team2")) {
+                    team2 = parts[1].trim();
+                }
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Writerobocup(team1, team2, true);
+        Writerobocup(team1, team2, false);
+
+        // Define Exit routine
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Writerobocup(team1, team2, true);
+            System.out.println("Exiting...");
+            // close every thread
+            for (Thread t : Thread.getAllStackTraces().keySet()) {
+                if (t.getState() == Thread.State.RUNNABLE)
+                    t.stop();
+            }
+            System.exit(0);
+        }));
+    }
+
+
+    // Exit routine
 }
