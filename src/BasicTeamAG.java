@@ -1,18 +1,21 @@
 /*
  * BasicTeam.java
  */
+
+import EDU.gatech.cc.is.abstractrobot.ControlSystemSS;
 import EDU.gatech.cc.is.util.Vec2;
-import EDU.gatech.cc.is.abstractrobot.*;
 //Clay not used
+
+// Trabajo de Nicolás Hidalgo, Gabriel Borges y Mathias Sonza
 
 /**
  * Example of a simple strategy for a robot soccer team without using Clay. It
  * illustrates how to use many of the sensor and all of the motor methods of a
  * SocSmall robot.
- * <P>
+ * <p>
  * For detailed information on how to configure behaviors, see the
  * <A HREF="../clay/docs/index.html">Clay page</A>.
- * <P>
+ * <p>
  * <A HREF="../COPYRIGHT.html">Copyright</A>
  * (c)1997 Georgia Tech Research Corporation
  *
@@ -28,22 +31,22 @@ public class BasicTeamAG extends ControlSystemSS {
     //[8,1][2,1][5,4][9,4][6,1]
     //[3,3,2][6,5,9][2,1,4][6,1,3][9,9,2]
     //[6,1,6][5,4,1][3,3,5][3,3,4][3,3,7]
-    
-    public double[] disPos = {0.6, 0.5, 0.3, 0.3, 0.3};
-    public double[] disKick = {0.1, 0.4, 0.3, 0.3, 0.3};
-    public double[] disTeam = {0.6, 0.1, 0.5, 0.4, 0.7};
-    public double sum_ballx= 0;
-    public long con_ballx= 0;
-    
+
+    public double[] disPos = {0.6, 0.7, 1.1, 0.7, 0.9};
+    public double[] disKick = {0.5, 0.6, 0.1, 0.6, 0.6};
+    public double[] disTeam = {0.7, 0.7, 0.1, 0.6, 0.9};
+    public double sum_ballx = 0;
+    public long con_ballx = 0;
+
     public void Configure() {
         // not used in this example.
     }
-    
-    public void setParam(Integer[] disPos, Integer[] disKick, Integer[] disTeam){
-        for (int i=0; i<5; i++){
-            this.disPos[i] = disPos[i]/10.0;
-            this.disKick[i] = disKick[i]/10.0;
-            this.disTeam[i] = disTeam[i]/10.0;
+
+    public void setParam(Integer[] disPos, Integer[] disKick, Integer[] disTeam) {
+        for (int i = 0; i < 5; i++) {
+            this.disPos[i] = disPos[i] / 10.0;
+            this.disKick[i] = disKick[i] / 10.0;
+            this.disTeam[i] = disTeam[i] / 10.0;
         }
     }
 
@@ -80,9 +83,9 @@ public class BasicTeamAG extends ControlSystemSS {
         //}
         // find the closest teammate
         Vec2 closestteammate = new Vec2(99999, 0);
-        for (int i = 0; i < teammates.length; i++) {
-            if (teammates[i].r < closestteammate.r) {
-                closestteammate = teammates[i];
+        for (Vec2 teammate : teammates) {
+            if (teammate.r < closestteammate.r) {
+                closestteammate = teammate;
             }
         }
 
@@ -120,7 +123,7 @@ public class BasicTeamAG extends ControlSystemSS {
         /*--- go to one of the places depending on player num ---*/
         int mynum = abstract_robot.getPlayerNumber(curr_time);
 
-        sum_ballx += Math.abs((ourgoal.x-ball.x)*(ourgoal.x-ball.x));
+        sum_ballx += Math.abs((ourgoal.x - ball.x) * (ourgoal.x - ball.x));
         con_ballx += 1;
         /*--- Goalie ---*/
         if (mynum == 0) {
@@ -140,33 +143,44 @@ public class BasicTeamAG extends ControlSystemSS {
 				}*/
         } /*--- midback ---*/ else if (mynum == 1) {
             // go to a midback position if far from the ball
+            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
+            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
             if (ball.r > this.disPos[mynum]) {
                 result = backspot;
             } // otherwise go to kick it
             else if (ball.r > this.disKick[mynum]) {
                 result = kickspot;
             } else {
+
+
                 result = ball;
             }
-            // keep away from others
-            if (closestteammate.r < this.disTeam[mynum]) {
+            if (closestteammate.r < this.disTeam[mynum] && distanceTeamMatteToBall < distanceMeToBall) {
                 result = awayfromclosest;
             }
+            // keep away from others
+
         } else if (mynum == 2) {
-            // go to a the northspot position if far from the ball
+            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
+            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
+            // go to northspot position if far from the ball
             if (ball.r > this.disPos[mynum]) {
                 result = northspot;
             } // otherwise go to kick it
             else if (ball.r > this.disKick[mynum]) {
                 result = kickspot;
             } else {
+
                 result = ball;
             }
             // keep away from others
-            if (closestteammate.r < this.disTeam[mynum]) {
+            if (closestteammate.r < this.disTeam[mynum] && distanceTeamMatteToBall < distanceMeToBall) {
                 result = awayfromclosest;
             }
+
         } else if (mynum == 4) {
+            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
+            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
             // go to a the northspot position if far from the ball
             if (ball.r > this.disPos[mynum]) {
                 result = southspot;
@@ -177,9 +191,10 @@ public class BasicTeamAG extends ControlSystemSS {
                 result = ball;
             }
             // keep away from others
-            if (closestteammate.r < this.disTeam[mynum]) {
+            if (closestteammate.r < this.disTeam[mynum] && distanceTeamMatteToBall < distanceMeToBall) {
                 result = awayfromclosest;
             }
+
         } /*---Lead Forward ---*/ else if (mynum == 3) {
             // if we are more than 4cm away from the ball
             if (ball.r > this.disPos[mynum]) // go to a good kicking position
@@ -192,8 +207,8 @@ public class BasicTeamAG extends ControlSystemSS {
             // keep away from others
           /*  if (closestteammate.r < this.disTeam[mynum]) {
                 result = awayfromclosest;
-            }*/            
-            
+            }*/
+
         }
 
 

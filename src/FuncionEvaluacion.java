@@ -144,7 +144,11 @@ public class FuncionEvaluacion extends FitnessFunction {
         //dividos y parseamos para obtener el último resultado y diferencia "diff"
         String[] line = tb.estado.split("\n");
         String[] lst = line[line.length - 1].split(",");
-        diff = Integer.parseInt(lst[0]) - Integer.parseInt(lst[1]);
+        try {
+            diff = Integer.parseInt(lst[1]) - Integer.parseInt(lst[2]);
+        } catch (Exception e) {
+            System.out.println(tb.estado);
+        }
 
         //Imprimimos resultado por pantalla
         println(cromosoma);
