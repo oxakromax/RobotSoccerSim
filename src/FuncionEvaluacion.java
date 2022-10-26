@@ -123,7 +123,7 @@ public class FuncionEvaluacion extends FitnessFunction {
         for (int ri = 0; ri < 5; ri++) {
             switch (team1) {
                 case "BasicTeamAG":
-                    ((BasicTeamAG) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);
+                    ((LosPreWorkout) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);
                     break;
                 case "SchemaNewHetero":
                     ((SchemaNewHetero) (tb.simulation.control_systems[ri])).setParam(disPos, disKick, disTeam);

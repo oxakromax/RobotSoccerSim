@@ -22,7 +22,7 @@ import EDU.gatech.cc.is.util.Vec2;
  * @author Tucker Balch
  * @version $Revision: 1.1 $
  */
-public class BasicTeamAG extends ControlSystemSS {
+public class LosPreWorkout extends ControlSystemSS {
 
     /**
      * Configure the control system. This method is called once at
@@ -32,9 +32,9 @@ public class BasicTeamAG extends ControlSystemSS {
     //[3,3,2][6,5,9][2,1,4][6,1,3][9,9,2]
     //[6,1,6][5,4,1][3,3,5][3,3,4][3,3,7]
 
-    public double[] disPos = {0.6, 0.7, 1.1, 0.7, 0.9};
-    public double[] disKick = {0.5, 0.6, 0.1, 0.6, 0.6};
-    public double[] disTeam = {0.7, 0.7, 0.1, 0.6, 0.9};
+    public double[] disPos = {0.8, 0.7, 0.7, 0.7, 0.7};
+    public double[] disKick = {0.3, 0.5, 0.5, 0.4, 0.6};
+    public double[] disTeam = {0.1, 0.6, 0.8, 0.2, 0.5};
     public double sum_ballx = 0;
     public long con_ballx = 0;
 
@@ -126,6 +126,8 @@ public class BasicTeamAG extends ControlSystemSS {
         sum_ballx += Math.abs((ourgoal.x - ball.x) * (ourgoal.x - ball.x));
         con_ballx += 1;
         /*--- Goalie ---*/
+        double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
+        double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
         if (mynum == 0) {
             // go to the goalie position if far from the ball
             if (ball.r > this.disPos[mynum]) {
@@ -143,16 +145,13 @@ public class BasicTeamAG extends ControlSystemSS {
 				}*/
         } /*--- midback ---*/ else if (mynum == 1) {
             // go to a midback position if far from the ball
-            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
-            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
+
             if (ball.r > this.disPos[mynum]) {
                 result = backspot;
             } // otherwise go to kick it
             else if (ball.r > this.disKick[mynum]) {
                 result = kickspot;
             } else {
-
-
                 result = ball;
             }
             if (closestteammate.r < this.disTeam[mynum] && distanceTeamMatteToBall < distanceMeToBall) {
@@ -161,8 +160,6 @@ public class BasicTeamAG extends ControlSystemSS {
             // keep away from others
 
         } else if (mynum == 2) {
-            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
-            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
             // go to northspot position if far from the ball
             if (ball.r > this.disPos[mynum]) {
                 result = northspot;
@@ -170,7 +167,6 @@ public class BasicTeamAG extends ControlSystemSS {
             else if (ball.r > this.disKick[mynum]) {
                 result = kickspot;
             } else {
-
                 result = ball;
             }
             // keep away from others
@@ -179,8 +175,6 @@ public class BasicTeamAG extends ControlSystemSS {
             }
 
         } else if (mynum == 4) {
-            double distanceTeamMatteToBall = Math.sqrt((ball.x - closestteammate.x) * (ball.x - closestteammate.x) + (ball.y - closestteammate.y) * (ball.y - closestteammate.y));
-            double distanceMeToBall = Math.sqrt((ball.x - abstract_robot.getPosition(curr_time).x) * (ball.x - abstract_robot.getPosition(curr_time).x) + (ball.y - abstract_robot.getPosition(curr_time).y) * (ball.y - abstract_robot.getPosition(curr_time).y));
             // go to a the northspot position if far from the ball
             if (ball.r > this.disPos[mynum]) {
                 result = southspot;

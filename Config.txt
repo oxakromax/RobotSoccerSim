@@ -1,2 +1,2 @@
-Team1 = BasicTeamAG
+Team1 = LosPreWorkout
 Team2 = AIKHomoG
